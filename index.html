@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>九州行程表｜福岡・北九州・唐津・佐賀</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@500;700&family=Noto+Sans+TC:wght@400;500;700;900&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink:#1B2A44;
+    --ink-soft:#4A5568;
+    --paper:#F1F3F6;
+    --card:#FFFFFF;
+    --line:#D8DEE6;
+    --accent:#BF3B26;
+    --gold:#B8935A;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:var(--paper);
+    color:var(--ink);
+    font-family:"Noto Sans TC","Hiragino Sans",sans-serif;
+    -webkit-font-smoothing:antialiased;
+    min-height:100vh;
+    display:flex;
+    flex-direction:column;
+  }
+  .mono{font-family:"JetBrains Mono",monospace;}
+
+  header.hero{
+    background:
+      radial-gradient(1200px 400px at 15% -20%, rgba(191,59,38,0.22), transparent 60%),
+      linear-gradient(180deg,#1B2A44 0%, #223457 100%);
+    color:#F1F3F6;
+    padding:64px 20px 46px;
+    text-align:center;
+    position:relative;
+    overflow:hidden;
+  }
+  header.hero::after{
+    content:"";
+    position:absolute; left:0; right:0; bottom:0; height:6px;
+    background:repeating-linear-gradient(90deg, var(--gold) 0 18px, transparent 18px 30px);
+    opacity:.7;
+  }
+  .eyebrow{
+    letter-spacing:.35em;
+    font-size:11px;
+    text-transform:uppercase;
+    color:#C9CFDA;
+    margin-bottom:14px;
+    font-family:"JetBrains Mono",monospace;
+  }
+  h1.title{
+    font-family:"Shippori Mincho",serif;
+    font-weight:700;
+    font-size:clamp(34px,8vw,54px);
+    margin:0 0 10px;
+    letter-spacing:.05em;
+  }
+  .subtitle{
+    color:#C9CFDA;
+    font-size:15px;
+    margin:0;
+  }
+  .dates{
+    margin-top:22px;
+    font-family:"JetBrains Mono",monospace;
+    font-size:13px;
+    color:#F1F3F6;
+    background:rgba(255,255,255,0.08);
+    border:1px solid rgba(255,255,255,0.2);
+    display:inline-block;
+    padding:8px 20px;
+    border-radius:999px;
+  }
+
+  main{
+    flex:1;
+    max-width:640px;
+    margin:0 auto;
+    padding:34px 20px 20px;
+    width:100%;
+  }
+
+  .cta{
+    display:block;
+    text-align:center;
+    background:var(--ink);
+    color:#fff;
+    text-decoration:none;
+    font-weight:700;
+    font-size:16px;
+    padding:16px 20px;
+    border-radius:14px;
+    box-shadow:0 4px 14px rgba(27,42,68,.25);
+    transition:transform .15s ease, box-shadow .15s ease;
+  }
+  .cta:hover{transform:translateY(-2px); box-shadow:0 8px 20px rgba(27,42,68,.3);}
+  .cta .arrow{color:var(--accent); margin-left:8px;}
+
+  .route-list{
+    list-style:none;
+    margin:26px 0 0;
+    padding:0;
+    counter-reset:day;
+    border-top:1px solid var(--line);
+  }
+  .route-list li{
+    counter-increment:day;
+    display:flex;
+    align-items:center;
+    gap:14px;
+    padding:13px 4px;
+    border-bottom:1px solid var(--line);
+    font-size:14.5px;
+  }
+  .route-list li::before{
+    content:"DAY " counter(day, decimal-leading-zero);
+    font-family:"JetBrains Mono",monospace;
+    font-size:11px;
+    color:var(--accent);
+    font-weight:600;
+    flex:0 0 auto;
+    width:56px;
+  }
+  .route-list .date{
+    font-family:"JetBrains Mono",monospace;
+    font-size:12px;
+    color:var(--ink-soft);
+    flex:0 0 auto;
+    width:70px;
+  }
+  .route-list .theme{font-weight:500;}
+
+  footer{
+    text-align:center;
+    padding:24px 20px 34px;
+    font-size:11px;
+    color:#9AA6BC;
+    font-family:"JetBrains Mono",monospace;
+  }
+</style>
+</head>
+<body>
+
+<header class="hero">
+  <div class="eyebrow">Kyushu Travel Log · 8 Days</div>
+  <h1 class="title">九州行程表</h1>
+  <p class="subtitle">福岡 ・ 北九州 ・ 相島 ・ 太宰府 ・ 唐津 ・ 佐賀 ・ 武雄</p>
+  <div class="dates">8/18（二）— 8/25（二）</div>
+</header>
+
+<main>
+  <a class="cta" href="kyushu_itinerary.html">查看每日行程表 <span class="arrow">→</span></a>
+
+  <ul class="route-list">
+    <li><span class="date">8/18</span><span class="theme">福岡市區</span></li>
+    <li><span class="date">8/19</span><span class="theme">相島＋北九州</span></li>
+    <li><span class="date">8/20</span><span class="theme">福岡市區</span></li>
+    <li><span class="date">8/21</span><span class="theme">太宰府＋久留米</span></li>
+    <li><span class="date">8/22</span><span class="theme">福岡市區</span></li>
+    <li><span class="date">8/23</span><span class="theme">唐津</span></li>
+    <li><span class="date">8/24</span><span class="theme">佐賀＋武雄</span></li>
+    <li><span class="date">8/25</span><span class="theme">佐賀・返程</span></li>
+  </ul>
+</main>
+
+<footer>Kyushu Itinerary · 8/18 – 8/25</footer>
+
+</body>
+</html>
