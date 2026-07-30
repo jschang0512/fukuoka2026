@@ -1,0 +1,575 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>九州行程表｜福岡・北九州・唐津・佐賀</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@500;700&family=Noto+Sans+TC:wght@400;500;700;900&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink:#1B2A44;
+    --ink-soft:#4A5568;
+    --paper:#F1F3F6;
+    --card:#FFFFFF;
+    --line:#D8DEE6;
+    --accent:#BF3B26;      /* torii vermillion - meals / highlight */
+    --gold:#B8935A;        /* cable/slope, price chips */
+    --rail:#8C2A2A;        /* train lines */
+    --bus:#3E7C59;         /* bus */
+    --boat:#0E7C86;        /* ferry */
+    --cable:#B8935A;       /* cablecar / slopecar */
+    --walk:#8A8A8A;        /* on foot */
+    --car:#6B4C9A;         /* taxi / rental car */
+    --radius:14px;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:var(--paper);
+    color:var(--ink);
+    font-family:"Noto Sans TC","Hiragino Sans",sans-serif;
+    -webkit-font-smoothing:antialiased;
+  }
+  .mono{font-family:"JetBrains Mono",monospace;}
+  .display{font-family:"Shippori Mincho",serif;}
+
+  /* ---------- Header ---------- */
+  header.hero{
+    background:
+      radial-gradient(1200px 300px at 10% -20%, rgba(191,59,38,0.18), transparent 60%),
+      linear-gradient(180deg,#1B2A44 0%, #223457 100%);
+    color:#F1F3F6;
+    padding:34px 20px 22px;
+    text-align:center;
+    position:relative;
+    overflow:hidden;
+  }
+  header.hero::after{
+    content:"";
+    position:absolute; left:0; right:0; bottom:0; height:6px;
+    background:repeating-linear-gradient(90deg, var(--gold) 0 18px, transparent 18px 30px);
+    opacity:.7;
+  }
+  .eyebrow{
+    letter-spacing:.35em;
+    font-size:11px;
+    text-transform:uppercase;
+    color:#C9CFDA;
+    margin-bottom:10px;
+    font-family:"JetBrains Mono",monospace;
+  }
+  h1.title{
+    font-family:"Shippori Mincho",serif;
+    font-weight:700;
+    font-size:clamp(28px,6vw,42px);
+    margin:0 0 6px;
+    letter-spacing:.04em;
+  }
+  .subtitle{
+    color:#C9CFDA;
+    font-size:14px;
+    margin:0;
+  }
+  .route-strip{
+    margin-top:18px;
+    font-family:"JetBrains Mono",monospace;
+    font-size:12px;
+    color:#F1F3F6;
+    background:rgba(255,255,255,0.08);
+    border:1px solid rgba(255,255,255,0.18);
+    display:inline-flex;
+    gap:8px;
+    padding:6px 14px;
+    border-radius:999px;
+    flex-wrap:wrap;
+    justify-content:center;
+  }
+
+  /* ---------- Day nav ---------- */
+  nav.daynav{
+    position:sticky; top:0; z-index:20;
+    background:#1B2A44;
+    display:flex;
+    overflow-x:auto;
+    padding:0 6px;
+    box-shadow:0 2px 10px rgba(0,0,0,.15);
+    scrollbar-width:none;
+  }
+  nav.daynav::-webkit-scrollbar{display:none;}
+  .daytab{
+    flex:0 0 auto;
+    background:transparent;
+    border:none;
+    color:#9AA6BC;
+    padding:12px 16px 10px;
+    cursor:pointer;
+    text-align:center;
+    border-bottom:3px solid transparent;
+    font-family:"Noto Sans TC",sans-serif;
+    position:relative;
+  }
+  .daytab .num{
+    display:block;
+    font-family:"JetBrains Mono",monospace;
+    font-size:10px;
+    letter-spacing:.1em;
+    color:#7E8AA3;
+  }
+  .daytab .lbl{
+    display:block;
+    font-size:13px;
+    font-weight:700;
+    white-space:nowrap;
+    margin-top:2px;
+  }
+  .daytab.active{
+    color:#fff;
+    border-bottom-color:var(--accent);
+  }
+  .daytab.active .num{color:var(--accent);}
+  .daytab:hover{color:#fff;}
+
+  /* ---------- Legend ---------- */
+  .legend{
+    display:flex;
+    flex-wrap:wrap;
+    gap:14px;
+    justify-content:center;
+    padding:14px 16px 4px;
+    font-size:11.5px;
+    color:var(--ink-soft);
+  }
+  .legend span{display:inline-flex; align-items:center; gap:5px;}
+  .dot{width:9px;height:9px;border-radius:50%;display:inline-block;}
+
+  /* ---------- Day page ---------- */
+  main{max-width:640px; margin:0 auto; padding:18px 16px 60px;}
+  .day-page{display:none;}
+  .day-page.active{display:block; animation:fadeIn .35s ease;}
+  @keyframes fadeIn{from{opacity:0; transform:translateY(6px);} to{opacity:1; transform:translateY(0);}}
+
+  .day-head{
+    display:flex;
+    align-items:baseline;
+    gap:12px;
+    margin:6px 0 18px;
+    border-bottom:2px solid var(--ink);
+    padding-bottom:10px;
+  }
+  .day-head .dnum{
+    font-family:"Shippori Mincho",serif;
+    font-size:34px;
+    font-weight:700;
+    color:var(--accent);
+    line-height:1;
+  }
+  .day-head .dmeta{flex:1;}
+  .day-head .ddate{
+    font-family:"JetBrains Mono",monospace;
+    font-size:12px;
+    color:var(--ink-soft);
+  }
+  .day-head .dtitle{
+    font-size:19px;
+    font-weight:700;
+    margin-top:2px;
+  }
+
+  /* timeline */
+  .timeline{position:relative; padding-left:26px;}
+  .timeline::before{
+    content:"";
+    position:absolute; left:9px; top:6px; bottom:6px; width:2px;
+    background:var(--line);
+  }
+  .row{position:relative; margin-bottom:14px;}
+  .row .dot{
+    position:absolute; left:-26px; top:5px;
+    width:11px; height:11px; border-radius:50%;
+    border:2px solid var(--card);
+    box-shadow:0 0 0 1.5px var(--line);
+  }
+
+  /* transit card */
+  .transit{
+    background:var(--card);
+    border:1px solid var(--line);
+    border-radius:var(--radius);
+    padding:10px 14px;
+    box-shadow:0 1px 2px rgba(27,42,68,.04);
+  }
+  .transit .leg{
+    display:flex; align-items:center; justify-content:space-between; gap:8px;
+    font-size:13.5px;
+  }
+  .transit .stop{font-weight:700;}
+  .transit .time{font-family:"JetBrains Mono",monospace; color:var(--ink-soft); font-size:12.5px;}
+  .transit .mid{
+    display:flex; align-items:center; gap:6px;
+    flex:1; justify-content:center; min-width:60px;
+    color:var(--ink-soft); font-size:12px;
+  }
+  .transit .mid .arrow{color:var(--line);}
+  .transit .meta{
+    display:flex; gap:8px; flex-wrap:wrap; margin-top:6px;
+  }
+  .chip{
+    font-family:"JetBrains Mono",monospace;
+    font-size:11px;
+    padding:2px 8px;
+    border-radius:999px;
+    background:#F1F3F6;
+    color:var(--ink-soft);
+    border:1px solid var(--line);
+  }
+  .chip.price{color:#8a6a1f; border-color:#e6d5ad; background:#FBF4E4;}
+  .chip.transfer{color:var(--accent); border-color:#f0c9bf; background:#FBEDE9;}
+  .line-tag{
+    font-size:12px; font-weight:700;
+  }
+
+  /* activity card */
+  .activity{
+    background:var(--card);
+    border:1px solid var(--line);
+    border-left:4px solid var(--accent);
+    border-radius:var(--radius);
+    padding:12px 14px;
+    display:flex;
+    gap:12px;
+    align-items:flex-start;
+  }
+  .activity .num{
+    font-family:"Shippori Mincho",serif;
+    font-weight:700;
+    font-size:16px;
+    color:var(--accent);
+    width:20px;
+    flex:0 0 auto;
+  }
+  .activity .ic{font-size:18px; flex:0 0 auto;}
+  .activity .txt{font-size:14.5px; font-weight:500; line-height:1.5;}
+  .activity .txt .time{
+    font-family:"JetBrains Mono",monospace;
+    font-size:12px;
+    color:var(--ink-soft);
+    margin-left:6px;
+  }
+
+  /* note / info card */
+  .note{
+    background:#FBF4E4;
+    border:1px dashed #D9BE85;
+    border-radius:var(--radius);
+    padding:10px 14px;
+    font-size:13px;
+    color:#6b5316;
+  }
+  .note b{color:#4a3a10;}
+
+  .section-label{
+    font-family:"JetBrains Mono",monospace;
+    font-size:10.5px;
+    letter-spacing:.15em;
+    color:#9AA6BC;
+    text-transform:uppercase;
+    margin:22px 0 8px 0;
+  }
+  .row:first-child .section-label{margin-top:0;}
+
+  footer{
+    text-align:center;
+    padding:20px;
+    font-size:11px;
+    color:#9AA6BC;
+    font-family:"JetBrains Mono",monospace;
+  }
+
+  @media(max-width:420px){
+    .transit .leg{flex-direction:row; font-size:12.5px;}
+    .transit .stop{max-width:34%;}
+  }
+</style>
+</head>
+<body>
+
+<header class="hero">
+  <div class="eyebrow">Kyushu Travel Log · 8 Days</div>
+  <h1 class="title">九州行程表</h1>
+  <p class="subtitle">福岡 ・ 北九州 ・ 相島 ・ 太宰府 ・ 唐津 ・ 佐賀 ・ 武雄</p>
+  <div class="route-strip" id="routeStrip"></div>
+</header>
+
+<nav class="daynav" id="dayNav"></nav>
+
+<div class="legend">
+  <span><i class="dot" style="background:var(--rail)"></i>鐵路</span>
+  <span><i class="dot" style="background:var(--bus)"></i>巴士</span>
+  <span><i class="dot" style="background:var(--boat)"></i>渡船</span>
+  <span><i class="dot" style="background:var(--cable)"></i>纜車/坡道車</span>
+  <span><i class="dot" style="background:var(--walk)"></i>步行</span>
+  <span><i class="dot" style="background:var(--car)"></i>計程車/租車</span>
+</div>
+
+<main id="main"></main>
+
+<footer>做成日: Kyushu Itinerary · 8/18 – 8/25</footer>
+
+<script>
+const MODE = {
+  rail:  {color:"var(--rail)",  icon:"🚃", label:"鐵路"},
+  bus:   {color:"var(--bus)",   icon:"🚌", label:"巴士"},
+  boat:  {color:"var(--boat)",  icon:"⛴",  label:"渡船"},
+  cable: {color:"var(--cable)", icon:"🚡", label:"纜車"},
+  walk:  {color:"var(--walk)",  icon:"🚶", label:"步行"},
+  car:   {color:"var(--car)",   icon:"🚕", label:"車"}
+};
+const TAG = {
+  meal:{icon:"🍽"}, sight:{icon:"🏯"}, shop:{icon:"🛍"}, view:{icon:"🌄"}, onsen:{icon:"♨"}
+};
+
+function T(mode,from,ft,to,tt,line,price,transfer){
+  return {type:"transit",mode,from,ft,to,tt,line,price,transfer};
+}
+function A(tag,text,time){ return {type:"activity",tag,text,time}; }
+function N(text){ return {type:"note",text}; }
+function S(label){ return {type:"section",label}; }
+
+const days = [
+{
+  date:"8/18（二）", theme:"福岡市區", route:"佐賀機場 → 佐賀 → 鳥栖 → 博多 → 天神",
+  items:[
+    S("移動：佐賀機場 → 博多"),
+    T("bus","佐賀機場","11:20","佐賀車站","11:50","佐賀空港接続バス","¥600"),
+    T("rail","佐賀車站","12:25","鳥栖車站","12:56","JR 長崎本線（往鳥栖）","","月台 3→1"),
+    T("rail","鳥栖車站","12:59","博多車站","13:31","JR 鹿兒島本線 區間快速（往門司港）","¥1300"),
+    S("博多・天神"),
+    A("meal","博多車站 寄放行李＋吃午餐"),
+    A("shop","博多運河城"),
+    A("meal","天神 吃晚餐"),
+    A("sight","新時代 福岡天神店","20:50"),
+    A("shop","唐吉訶德 福岡天神本店")
+  ]
+},
+{
+  date:"8/19（三）", theme:"相島＋北九州", route:"博多 → 相島 → 小倉 → 門司港 → 皿倉山 → 博多",
+  items:[
+    S("移動：博多 → 相島"),
+    T("rail","博多車站","08:08","福工大前車站","08:26","JR 鹿兒島本線 快速（往門司港）","¥340"),
+    T("boat","JR福工大前駅","08:36","相島渡船場","08:46","マリンクス 相らんど線（第1ルート・時計回り）","¥100"),
+    T("boat","新宮漁港","09:20","相島","09:37","町営渡船「しんぐう」","¥480"),
+    A("view","相島"),
+    S("移動：相島 → 小倉"),
+    T("boat","相島","10:50","新宮漁港","11:07","町営渡船「しんぐう」","¥480"),
+    T("boat","相島渡船場","11:24","JR福工大前駅","11:35","マリンクス 相らんど線（第2ルート・逆回り）","¥100"),
+    T("rail","福工大前車站","11:49","小倉車站","12:50","JR 鹿兒島本線 區間快速（往門司港）","¥1300"),
+    S("小倉"),
+    A("meal","小倉 吃午餐"),
+    A("sight","小倉城"),
+    A("shop","あるあるCity"),
+    S("移動：小倉 → 門司港"),
+    T("rail","小倉車站","17:32","門司港車站","17:46","JR 鹿兒島本線（往門司港）","¥340"),
+    A("view","門司港 看夕陽＋吃晚餐"),
+    S("移動：門司港 → 皿倉山"),
+    T("rail","門司港車站","19:10","八幡車站","19:46","JR 鹿兒島本線（往博多）","¥560"),
+    T("bus","八幡車站","20:05","ケーブル山麓駅","20:15","無料シャトルバス","¥0"),
+    T("cable","ケーブル山麓駅","20:20","ケーブル山上駅","20:26","ケーブルカー"),
+    T("cable","ケーブル山上駅","20:28","スロープカー山頂/展望台駅","20:31","スロープカー"),
+    A("view","皿倉山展望台"),
+    S("移動：皿倉山 → 博多"),
+    T("cable","スロープカー山頂/展望台駅","21:33","ケーブル山上駅","21:36","スロープカー"),
+    T("cable","ケーブル山上駅","21:40","ケーブル山麓駅","21:46","ケーブルカー","¥1230"),
+    T("bus","ケーブル山麓駅","21:55","八幡車站","22:05","無料シャトルバス","¥0"),
+    T("rail","八幡車站","22:27","博多車站","23:43","JR 鹿兒島本線（往久留米）","¥1300")
+  ]
+},
+{
+  date:"8/20（四）", theme:"福岡市區", route:"博多 → 那珂五丁目 → LaLaport",
+  items:[
+    S("博多老街"),
+    A("sight","東長寺"),
+    A("sight","櫛田神社"),
+    A("shop","川端通商店街"),
+    S("移動：博多 → 那珂五丁目"),
+    T("bus","博多バスターミナル1F（13のりば）","","那珂五丁目","","西鉄バス 40L / 44 / 45","¥240","21 分"),
+    A("shop","LaLaport")
+  ]
+},
+{
+  date:"8/21（五）", theme:"太宰府＋久留米", route:"福岡市區 → 太宰府 → 高良大社 → 久留米",
+  items:[
+    A("sight","福岡市區 閒逛"),
+    S("移動：博多 → 太宰府"),
+    T("rail","博多車站","13:05","藥院車站","13:12","福岡地下鐵七隈線（往橋本）","¥210"),
+    T("rail","藥院車站","13:20","西鐵二日市車站","13:34","西鐵天神大牟田線 急行（往西鐵小郡）","","換乘"),
+    T("rail","西鐵二日市車站","13:50","太宰府車站","13:56","西鐵太宰府線（往太宰府）","¥420"),
+    A("sight","太宰府"),
+    S("移動：太宰府 → 高良大社"),
+    T("rail","太宰府車站","16:33","西鐵二日市車站","16:40","西鐵太宰府線","","換乘"),
+    T("rail","西鐵二日市車站","16:46","西鐵久留米車站","17:01","西鐵太宰府線（往太宰府）","¥540"),
+    T("bus","西鉄久留米","17:37","御井町","17:53","西鉄バス 9-1","¥290"),
+    T("walk","御井町","17:53","高良大社","18:23","步行"),
+    A("sight","高良大社"),
+    S("晚餐：大砲拉麵"),
+    T("car","高良大社","19:30","大砲ラーメン 本店","19:50","計程車 / Uber（約 20 分）","¥1000"),
+    A("meal","大砲ラーメン 本店"),
+    S("移動：久留米 → 博多"),
+    T("rail","西鐵久留米車站","20:37","藥院車站","21:14","西鐵天神大牟田線 急行（往西鐵福岡）","¥720"),
+    T("rail","藥院車站","21:23","博多車站","21:30","福岡地下鐵七隈線（往橋本）","¥210")
+  ]
+},
+{
+  date:"8/22（六）", theme:"福岡市區", route:"赤坂 → 大濠公園 → 福間 → 宮地嶽神社 → 博多",
+  items:[
+    T("rail","博多車站","08:53","赤坂車站","09:00","福岡地下鐵機場線（往姪濱）","¥260"),
+    A("meal","長浜鮮魚市場 吃早餐"),
+    A("sight","舞鶴公園"),
+    A("sight","福岡城"),
+    A("meal","大濠公園 吃午餐"),
+    A("meal","FUK COFFEE Parks 吃布丁"),
+    S("移動：大濠公園 → 宮地嶽神社"),
+    T("rail","大濠公園車站","17:18","博多車站","17:27","福岡地下鐵機場線（往福岡機場）","¥260"),
+    T("rail","博多車站","17:32","福間車站","18:01","JR 鹿兒島本線 區間快速（往門司港）","¥560"),
+    T("bus","福間駅前","18:23","宮地嶽神社前","18:29","西鉄バス 1-1","¥210"),
+    A("sight","宮地嶽神社"),
+    S("移動：宮地嶽神社 → 博多"),
+    T("bus","宮地嶽神社前","19:15","福間駅前","19:21","西鉄バス 1-1","¥210"),
+    T("rail","福間車站","19:31","博多車站","19:58","JR 鹿兒島本線 區間快速（往荒尾）","¥560")
+  ]
+},
+{
+  date:"8/23（日）", theme:"唐津", route:"博多 → 姪濱 → 唐津（租車一日遊）",
+  items:[
+    S("移動：博多 → 唐津"),
+    T("rail","博多車站","08:23","姪濱車站","08:42","福岡地下鐵機場線 快速（往西唐津）","¥300"),
+    T("rail","姪濱車站","08:44","唐津車站","09:32","筑肥線 快速（往西唐津）","¥990"),
+    N("<b>トヨタレンタカー 唐津駅通り店</b>　10:00～17:00　¥16,720（租車一日遊）"),
+    S("唐津一日遊"),
+    A("meal","呼子朝市"),
+    A("view","七ツ釜"),
+    A("view","虹之松原"),
+    A("view","鏡山觀景台"),
+    A("sight","唐津城"),
+    A("sight","舊唐津銀行 辰野金吾紀念館"),
+    A("sight","唐津神社"),
+    S("移動：唐津 → 佐賀"),
+    T("rail","唐津車站","18:15","佐賀車站","19:29","JR 唐津線（往佐賀）","¥1300")
+  ]
+},
+{
+  date:"8/24（一）", theme:"佐賀＋武雄", route:"佐賀城公園 → Cygames → 武雄溫泉",
+  items:[
+    S("移動：佐賀車站 → 佐賀城公園"),
+    T("bus","佐賀駅バスセンター","10:25","博物館前","10:34","25　広江・和崎","¥160"),
+    A("sight","佐賀城公園"),
+    S("移動：博物館前 → 佐賀車站"),
+    T("bus","博物館前","11:35","佐賀駅バスセンター","11:47","1　唐人町・佐賀駅バスセンター","¥160"),
+    A("sight","Cygames 佐賀ビル"),
+    A("meal","ドライブイン鳥 佐賀店 吃午餐"),
+    S("移動：佐賀 → 武雄溫泉"),
+    T("rail","佐賀車站","13:21","江北車站","13:36","JR 長崎本線（往肥前濱）","","換乘 4→5"),
+    T("rail","江北車站","13:49","武雄温泉車站","14:06","JR 佐世保線（往早岐）","¥660"),
+    A("onsen","武雄温泉"),
+    S("移動：武雄溫泉 → 佐賀"),
+    T("rail","武雄温泉車站","17:19","江北車站","17:36","JR 佐世保線（往江北）","","換乘 5→3"),
+    T("rail","江北車站","17:52","佐賀車站","18:14","JR 長崎本線（往福間）","¥660")
+  ]
+},
+{
+  date:"8/25（二）", theme:"佐賀・返程", route:"佐賀車站 → 佐賀機場",
+  items:[
+    S("移動：佐賀車站 → 佐賀機場"),
+    T("bus","佐賀車站","09:10","佐賀機場","09:40","佐賀空港接続バス","¥600"),
+    A("sight","行程結束，賦歸 ✈")
+  ]
+}
+];
+
+function renderRow(item){
+  if(item.type==="section"){
+    return `<div class="section-label">${item.label}</div>`;
+  }
+  if(item.type==="note"){
+    return `<div class="row"><div class="note">${item.text}</div></div>`;
+  }
+  if(item.type==="activity"){
+    const ic = (TAG[item.tag]||{icon:"・"}).icon;
+    return `<div class="row">
+      <span class="dot" style="background:var(--accent)"></span>
+      <div class="activity">
+        <span class="ic">${ic}</span>
+        <div class="txt">${item.text}${item.time? `<span class="time">${item.time}</span>`:""}</div>
+      </div>
+    </div>`;
+  }
+  // transit
+  const m = MODE[item.mode] || MODE.rail;
+  const chips = [];
+  if(item.price) chips.push(`<span class="chip price">${item.price}</span>`);
+  if(item.transfer) chips.push(`<span class="chip transfer">${item.transfer}</span>`);
+  const timeFrom = item.ft ? `<span class="time">${item.ft}</span>` : "";
+  const timeTo = item.tt ? `<span class="time">${item.tt}</span>` : "";
+  return `<div class="row">
+    <span class="dot" style="background:${m.color}"></span>
+    <div class="transit">
+      <div class="leg">
+        <span class="stop">${item.from}${timeFrom? " "+timeFrom : ""}</span>
+        <span class="mid"><span>${m.icon}</span><span class="arrow">─────▶</span></span>
+        <span class="stop">${item.to}${timeTo? " "+timeTo : ""}</span>
+      </div>
+      <div class="meta">
+        <span class="chip line-tag" style="color:${m.color}">${item.line}</span>
+        ${chips.join("")}
+      </div>
+    </div>
+  </div>`;
+}
+
+function buildPage(day, idx){
+  const rows = day.items.map(renderRow).join("");
+  return `<section class="day-page" id="day-${idx}">
+    <div class="day-head">
+      <div class="dnum mono">${String(idx+1).padStart(2,"0")}</div>
+      <div class="dmeta">
+        <div class="ddate">${day.date}</div>
+        <div class="dtitle">${day.theme}</div>
+      </div>
+    </div>
+    <div class="timeline">${rows}</div>
+  </section>`;
+}
+
+function buildNav(){
+  return days.map((d,i)=>`
+    <button class="daytab${i===0?" active":""}" data-idx="${i}">
+      <span class="num">DAY ${String(i+1).padStart(2,"0")}</span>
+      <span class="lbl">${d.theme}</span>
+    </button>`).join("");
+}
+
+function buildRouteStrip(){
+  return days.map((d,i)=>`<span>${i+1}. ${d.theme}</span>`).join("<span style='opacity:.4'>／</span>");
+}
+
+const main = document.getElementById("main");
+main.innerHTML = days.map(buildPage).join("");
+document.getElementById("dayNav").innerHTML = buildNav();
+document.getElementById("routeStrip").innerHTML = buildRouteStrip();
+
+document.querySelectorAll(".day-page")[0].classList.add("active");
+
+document.getElementById("dayNav").addEventListener("click",(e)=>{
+  const btn = e.target.closest(".daytab");
+  if(!btn) return;
+  const idx = btn.dataset.idx;
+  document.querySelectorAll(".daytab").forEach(b=>b.classList.remove("active"));
+  document.querySelectorAll(".day-page").forEach(p=>p.classList.remove("active"));
+  btn.classList.add("active");
+  document.getElementById("day-"+idx).classList.add("active");
+  btn.scrollIntoView({behavior:"smooth", inline:"center", block:"nearest"});
+  window.scrollTo({top:0, behavior:"smooth"});
+});
+</script>
+</body>
+</html>
