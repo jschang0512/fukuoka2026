@@ -1,0 +1,154 @@
+/* ============================================================
+   shared.css — common design tokens + base styles
+   Used by both index.html and kyushu_itinerary.html.
+   Keep this file in the same folder as both HTML files.
+   ============================================================ */
+
+:root{
+  --ink:#1B2A44;
+  --ink-soft:#4A5568;
+  --paper:#F1F3F6;
+  --card:#FFFFFF;
+  --line:#D8DEE6;
+  --accent:#BF3B26;   /* torii vermillion — highlight / Fukuoka loop */
+  --gold:#B8935A;     /* transfer / accents */
+  --btn-solid:#1B2A44; /* fixed dark navy for solid CTA buttons — same in both themes so white button text always stays readable */
+  --btn-solid-fg:#FFFFFF;
+}
+
+/* dark theme — activated by data-theme="dark" on <html>, toggled/persisted via shared.js.
+   Accent/gold are deliberately darker & more saturated than a "light dark-mode"
+   palette would suggest — both are still used as button/badge backgrounds with
+   white text on top, so they need to stay dark enough for that text to read. */
+:root[data-theme="dark"]{
+  --ink:#ECEEF3;
+  --ink-soft:#98A2B8;
+  --paper:#11151D;
+  --card:#1C2230;
+  --line:#2B3242;
+  --accent:#E0503D;
+  --gold:#B8903E;
+}
+
+*{box-sizing:border-box;}
+html,body{margin:0;padding:0;}
+body{
+  background:var(--paper);
+  color:var(--ink);
+  font-family:"Noto Sans TC","Hiragino Sans",sans-serif;
+  -webkit-font-smoothing:antialiased;
+  transition:background .25s ease, color .25s ease;
+}
+.mono{font-family:"JetBrains Mono",monospace;}
+.display{font-family:"Shippori Mincho",serif;}
+
+/* light/dark theme toggle button (see shared.js for the switching logic) */
+.theme-toggle{
+  position:fixed;
+  top:14px;
+  right:14px;
+  z-index:50;
+  width:36px;
+  height:36px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  border-radius:50%;
+  background:rgba(255,255,255,0.12);
+  border:1px solid rgba(255,255,255,0.28);
+  color:#F1F3F6;
+  font-size:16px;
+  cursor:pointer;
+  backdrop-filter:blur(4px);
+}
+.theme-toggle:hover{ background:rgba(255,255,255,0.22); }
+:root[data-theme="dark"] .theme-toggle{
+  background:rgba(0,0,0,0.35);
+  border-color:rgba(255,255,255,0.18);
+}
+
+/* header typewriter cursor (see shared.js for the typing logic) */
+.type-cursor{
+  display:inline-block;
+  margin-left:2px;
+  color:var(--accent);
+  animation:blinkCursor .8s steps(1) infinite;
+}
+@keyframes blinkCursor{ 50%{ opacity:0; } }
+
+/* trip countdown (see shared.js for the tick logic) */
+.countdown-wrap{
+  background:var(--card);
+  border:1px solid var(--line);
+  border-radius:16px;
+  padding:16px 18px;
+  margin:0 0 18px;
+  text-align:center;
+  box-shadow:0 2px 10px rgba(27,42,68,.06);
+}
+.countdown-label{
+  font-family:"JetBrains Mono",monospace;
+  font-size:11px;
+  letter-spacing:.1em;
+  color:var(--ink-soft);
+  text-transform:uppercase;
+  margin-bottom:10px;
+}
+.countdown{
+  display:flex;
+  align-items:baseline;
+  justify-content:center;
+  gap:6px;
+}
+.cd-unit{ display:flex; flex-direction:column; align-items:center; min-width:44px; }
+.cd-num{
+  display:inline-block;
+  font-family:"JetBrains Mono",monospace;
+  font-weight:700;
+  font-size:26px;
+  color:var(--ink);
+  line-height:1;
+  perspective:220px;
+  min-width:1.6em;
+}
+.cd-num-inner{
+  display:inline-block;
+  transform-style:preserve-3d;
+}
+.cd-num-inner.flip{
+  animation:cdFlip .5s ease;
+}
+@keyframes cdFlip{
+  0%{ transform:rotateX(0deg); }
+  49%{ transform:rotateX(-96deg); opacity:.4; }
+  51%{ transform:rotateX(96deg); opacity:.4; }
+  100%{ transform:rotateX(0deg); opacity:1; }
+}
+.cd-label{
+  font-size:10px;
+  color:var(--ink-soft);
+  margin-top:3px;
+}
+.cd-sep{
+  font-family:"JetBrains Mono",monospace;
+  font-weight:700;
+  font-size:22px;
+  color:var(--line);
+  transform:translateY(-4px);
+}
+.cd-done{
+  font-family:"Shippori Mincho",serif;
+  font-weight:700;
+  font-size:16px;
+  color:var(--accent);
+}
+
+/* header parallax background layer (see shared.js for the scroll logic) */
+#heroHeader{ position:relative; overflow:hidden; }
+#heroBg{
+  position:absolute;
+  inset:-40px 0 -40px 0; /* extra vertical bleed so the parallax shift never reveals an edge */
+  will-change:transform;
+  pointer-events:none;
+}
+
