@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<script>
+(function(){
+  try{
+    var t = localStorage.getItem("kyushu-theme");
+    if(t !== "dark" && t !== "light"){
+      t = (window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches) ? "dark" : "light";
+    }
+    document.documentElement.setAttribute("data-theme", t);
+  }catch(e){}
+})();
+</script>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>九州行程表｜福岡・北九州・唐津・佐賀</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@500;700&family=Noto+Sans+TC:wght@400;500;700;900&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+<link rel="stylesheet" href="shared.css">
+<style>
+  :root{ --teal:#165E83; } /* Karatsu / Saga branch — page-specific, not in shared.css */
+
+  header.hero{
+    color:var(--ink);
+    padding:40px 20px 28px;
+    text-align:center;
+    position:relative;
+    overflow:hidden;
+  }
+  #heroBg{
+    background:
+      radial-gradient(1000px 320px at 15% -20%, rgba(232,122,144,0.16), transparent 60%),
+      linear-gradient(180deg, #FFFFFB 0%, #FCF3F5 100%);
+  }
+  :root[data-theme="dark"] #heroBg{
+    background:
+      radial-gradient(1000px 320px at 15% -20%, rgba(254,223,225,0.10), transparent 60%),
+      linear-gradient(180deg,#1C1C1C 0%, #262223 100%);
+  }
+  header.hero > *{ position:relative; z-index:1; }
+  header.hero::after{
+    content:"";
+    position:absolute; left:0; right:0; bottom:0; height:6px;
+    background:repeating-linear-gradient(90deg, var(--gold) 0 18px, transparent 18px 30px);
+    opacity:.7;
+    z-index:2;
+  }
+  .eyebrow{
+    letter-spacing:.3em;
+    font-size:10.5px;
+    text-transform:uppercase;
+    color:var(--ink-soft);
+    margin-bottom:12px;
+    font-family:"JetBrains Mono",monospace;
+  }
+  h1.title{
+    font-family:"Shippori Mincho",serif;
+    font-weight:700;
+    font-size:clamp(26px,6.5vw,38px);
+    margin:0 0 8px;
+    letter-spacing:.05em;
+  }
+  .subtitle{
+    color:var(--ink-soft);
+    font-size:clamp(9.5px, 3.2vw, 13px);
+    margin:0;
+    white-space:nowrap;
+    overflow:hidden;
+    text-overflow:ellipsis;
+    padding:0 4px;
+  }
+
+
+  main{max-width:760px; margin:0 auto; padding:22px 16px 40px;}
+
+  .cta{
+    display:block;
+    text-align:center;
+    background:var(--btn-solid);
+    color:var(--btn-solid-fg);
+    text-decoration:none;
+    font-weight:700;
+    font-size:15px;
+    padding:14px 20px;
+    border-radius:14px;
+    box-shadow:0 4px 14px rgba(38,34,32,.2);
+    transition:transform .15s ease, box-shadow .15s ease;
+    margin-bottom:10px;
+  }
+  .cta:hover{transform:translateY(-2px); box-shadow:0 8px 20px rgba(38,34,32,.25);}
+  .cta .arrow{color:var(--accent-text); margin-left:8px;}
+
+  .cta-row{ display:flex; gap:10px; margin-bottom:18px; }
+  .cta-row .cta{ flex:1; margin-bottom:0; }
+  .cta.secondary{
+    background:var(--card);
+    color:var(--ink);
+    border:1px solid var(--line);
+    box-shadow:none;
+  }
+  .cta.secondary:hover{ border-color:var(--accent); box-shadow:0 4px 14px rgba(38,34,32,.1); }
+
+  .map-title{
+    font-family:"Shippori Mincho",serif;
+    font-weight:700;
+    font-size:15px;
+    margin:0 0 12px;
+    padding-left:2px;
+    color:var(--ink);
+  }
+  .map-title small{
+    display:block;
+    font-family:"Noto Sans TC",sans-serif;
+    font-weight:400;
+    font-size:12px;
+    color:var(--ink-soft);
+    margin-top:2px;
+  }
+
+  #map{
+    width:100%;
+    height:520px;
+    border-radius:18px;
+    box-shadow:0 6px 24px rgba(38,34,32,.15);
+    border:1px solid var(--line);
+  }
+
+  /* custom markers */
+  .pin{
+    width:30px; height:30px;
+    border-radius:50%;
+    display:flex; align-items:center; justify-content:center;
+    color:#fff; font-weight:700; font-size:12px;
+    font-family:"JetBrains Mono",monospace;
+    box-shadow:0 2px 6px rgba(0,0,0,.35);
+    border:2px solid #fff;
+    cursor:pointer;
+    transition:transform .18s cubic-bezier(.34,1.56,.64,1);
+  }
+  .pin:hover{ transform:scale(1.2); }
+  .pin.terminus{ border-radius:9px; width:34px; height:34px; font-size:15px; }
+
+  .cta, .cta.secondary{ transition:transform .15s ease, box-shadow .15s ease; }
+  .cta:active{ transform:scale(.96); }
+
+  .popup-card{ font-family:"Noto Sans TC",sans-serif; min-width:180px; }
+  .popup-card .date{ font-family:"JetBrains Mono",monospace; font-size:11px; color:var(--ink-soft); }
+  .popup-card .theme{ font-size:15px; font-weight:700; margin:2px 0 4px; color:var(--ink); }
+  .popup-card .route{ font-size:12px; color:var(--ink-soft); line-height:1.5; margin-bottom:8px; }
+  .popup-card a{
+    display:inline-block;
+    font-size:12px; font-weight:700;
+    color:var(--btn-solid-fg); background:var(--btn-solid);
+    padding:6px 12px; border-radius:999px;
+    text-decoration:none;
+  }
+  .leaflet-popup-content-wrapper{ border-radius:12px; }
+  /* Leaflet's popup chrome always stays light regardless of site theme,
+     so keep its text dark even when the rest of the page flips to dark mode */
+  :root[data-theme="dark"] .popup-card,
+  :root[data-theme="dark"] .popup-card .theme{ color:#2A2126; }
+  :root[data-theme="dark"] .popup-card .date,
+  :root[data-theme="dark"] .popup-card .route{ color:#7A6D72; }
+
+  footer{
+    text-align:center;
+    padding:16px 20px 30px;
+    font-size:11px;
+    color:var(--ink-soft);
+    font-family:"JetBrains Mono",monospace;
+  }
+</style>
+</head>
+<body>
+
+<header class="hero" id="heroHeader">
+  <div id="heroBg"></div>
+  <div class="eyebrow">Kyushu Travel Log · 8 Days</div>
+  <h1 class="title">九州行程表</h1>
+  <p class="subtitle"><span id="subtitleType"></span><span class="type-cursor">▍</span></p>
+</header>
+
+<main>
+  <div class="header-badges">
+    <div class="countdown-wrap">
+      <div class="countdown-label">✈️ 距離出發還有</div>
+      <div class="countdown" id="countdown"></div>
+    </div>
+    <div class="countdown-wrap forex-wrap">
+      <div class="countdown-label">💴 匯率參考</div>
+      <div class="forex-badge" id="forexBadge"></div>
+    </div>
+  </div>
+
+  <div class="cta-row">
+    <a class="cta" href="kyushu_itinerary.html">查看每日行程表 <span class="arrow">→</span></a>
+    <a class="cta secondary" href="kyushu_itinerary.html#packing">🧳 檢查行李</a>
+  </div>
+  <div class="cta-row">
+    <a class="cta secondary" href="split_bill.html" target="_blank" rel="noopener">💰 旅費分帳</a>
+  </div>
+
+  <p class="map-title">行程地圖<small>點地圖上的站點看當天行程，或直接跳到那一天</small></p>
+  <div id="map"></div>
+</main>
+
+<footer>Kyushu Itinerary · 8/18 – 8/25</footer>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="shared.js"></script>
+<script>
+const days = [
+  {idx:0, date:"8/18（二）", theme:"福岡市區",      route:"佐賀機場 → 佐賀 → 鳥栖 → 博多 → 天神",   lat:33.5902, lng:130.3982, color:"var(--accent)", kind:"start"},
+  {idx:1, date:"8/19（三）", theme:"相島＋北九州",   route:"博多 → 相島 → 小倉 → 門司港 → 皿倉山",    lat:33.8834, lng:130.8752, color:"var(--accent)"},
+  {idx:2, date:"8/20（四）", theme:"福岡市區",      route:"東長寺 → 櫛田神社 → 川端通 → LaLaport",   lat:33.6250, lng:130.4350, color:"var(--accent)"},
+  {idx:3, date:"8/21（五）", theme:"太宰府＋久留米", route:"太宰府 → 高良大社 → 大砲拉麵",             lat:33.5219, lng:130.5344, color:"var(--accent)"},
+  {idx:4, date:"8/22（六）", theme:"福岡市區",      route:"長浜市場 → 大濠公園 → 宮地嶽神社",         lat:33.5780, lng:130.3500, color:"var(--accent)"},
+  {idx:5, date:"8/23（日）", theme:"唐津",          route:"呼子朝市 → 七ツ釜 → 唐津城（租車）",       lat:33.4494, lng:129.9689, color:"var(--teal)"},
+  {idx:6, date:"8/24（一）", theme:"佐賀＋武雄",     route:"佐賀城公園 → Cygames → 武雄溫泉",          lat:33.2494, lng:130.2988, color:"var(--teal)"},
+  {idx:7, date:"8/25（二）", theme:"佐賀・返程",     route:"佐賀車站 → 佐賀機場",                       lat:33.1497, lng:130.3020, color:"var(--teal)", kind:"end"}
+];
+
+const colorMap = {"var(--accent)":"#C2445F","var(--teal)":"#165E83"};
+
+const map = L.map('map', {
+  scrollWheelZoom:true,
+  doubleClickZoom:true,
+  touchZoom:true,
+  boxZoom:true,
+  keyboard:true,
+  zoomControl:true
+}).setView([33.55,130.5], 9);
+
+L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
+  attribution: '&copy; OpenStreetMap contributors &copy; CARTO',
+  subdomains: 'abcd',
+  maxZoom: 19
+}).addTo(map);
+
+const bounds = days.map(d => [d.lat, d.lng]);
+
+// markers — all drawn immediately
+days.forEach(d=>{
+  const isTerm = d.kind==="start" || d.kind==="end";
+  const label = d.kind==="start" ? "起" : d.kind==="end" ? "終" : String(d.idx+1).padStart(2,"0");
+  const icon = L.divIcon({
+    className:"",
+    html:`<div class="pin${isTerm?" terminus":""}" style="background:${colorMap[d.color]}">${label}</div>`,
+    iconSize:[isTerm?34:30, isTerm?34:30],
+    iconAnchor:[isTerm?17:15, isTerm?17:15]
+  });
+  const marker = L.marker([d.lat,d.lng], {icon}).addTo(map);
+  marker.bindPopup(`
+    <div class="popup-card">
+      <div class="date">DAY ${String(d.idx+1).padStart(2,"0")} ・ ${d.date}</div>
+      <div class="theme">${d.theme}</div>
+      <div class="route">${d.route}</div>
+      <a href="kyushu_itinerary.html#day-${d.idx}">查看行程 →</a>
+    </div>
+  `);
+});
+
+// route line, segmented by color so the branch change is visible — all drawn immediately
+for(let i=0;i<days.length-1;i++){
+  const a = days[i], b = days[i+1];
+  const dashed = a.color !== b.color;
+  L.polyline([[a.lat,a.lng],[b.lat,b.lng]], {
+    color: dashed ? "#8C7FB0" : colorMap[a.color],
+    weight: 3,
+    opacity: 0.8,
+    dashArray: dashed ? "6,8" : null
+  }).addTo(map);
+}
+
+// fit the whole route in view — everything is already drawn, no animation
+map.fitBounds(bounds, {padding:[36,36]});
+</script>
+</body>
+</html>
